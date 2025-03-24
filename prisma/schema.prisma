@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id       BigInt   @id @default(autoincrement())
+  nombre   String
+  email    String   @unique
+  password String
+
+  @@map("usuarios")
+}
+
+model Parcela {
+  id           BigInt    @id @default(autoincrement())
+  nombre       String
+  ubicacion    String
+  responsable  String
+  tipo_cultivo String
+  latitud      Decimal
+  longitud     Decimal
+  activo       Boolean   @default(true)
+  lecturas     Lectura[]
+  usuario_id   BigInt
+
+  @@map("parcelas")
+}
+
+model Lectura {
+  id            BigInt    @id @default(autoincrement())
+  parcela_id    BigInt
+  humedad       Float
+  temperatura   Float
+  lluvia        Float
+  sol           Float
+  fecha_lectura DateTime  @default(now())
+  ultimo_riego  DateTime?
+  parcela       Parcela   @relation(fields: [parcela_id], references: [id])
+
+  @@map("lecturas")
+}
+
+model LecturaGlobal {
+  id            BigInt   @id @default(autoincrement())
+  humedad       Float
+  temperatura   Float
+  lluvia        Float
+  sol           Float
+  fecha_lectura DateTime @default(now())
+
+  @@map("lecturas_globales")
+}
