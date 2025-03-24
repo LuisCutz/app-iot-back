@@ -2,7 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class LecturasGlobalesService {
@@ -11,9 +12,22 @@ export class LecturasGlobalesService {
   constructor(
     private prisma: PrismaService,
     private httpService: HttpService,
+    private configService: ConfigService,
   ) {}
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron('*/1 * * * *') // Cada 1 minuto
+  // La expresión cron */5 * * * * significa:
+  // */5: cada 5 minutos
+  // *: cualquier hora
+  //*: cualquier día del mes
+  //*: cualquier mes
+  //*: cualquier día de la semana
+  //Si quieres modificar el intervalo, puedes cambiar el número después del */. Por ejemplo:
+
+  //*/10 * * * * - cada 10 minutos
+  //*/15 * * * * - cada 15 minutos
+  //*/30 * * * * - cada 30 minutos
+  //0 * * * * - cada hora
   async obtenerYAlmacenarLecturas() {
     try {
       const { data } = await firstValueFrom(
