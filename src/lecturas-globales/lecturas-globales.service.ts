@@ -15,6 +15,30 @@ export class LecturasGlobalesService {
     private configService: ConfigService,
   ) {}
 
+  private transformBigIntToNumber(data: any): any {
+    if (data === null || data === undefined) {
+      return data;
+    }
+
+    if (typeof data === 'bigint') {
+      return Number(data);
+    }
+
+    if (Array.isArray(data)) {
+      return data.map(item => this.transformBigIntToNumber(item));
+    }
+
+    if (typeof data === 'object') {
+      const transformed = {};
+      for (const key in data) {
+        transformed[key] = this.transformBigIntToNumber(data[key]);
+      }
+      return transformed;
+    }
+
+    return data;
+  }
+
   @Cron('*/1 * * * *') // Cada 1 minuto
   // La expresión cron */5 * * * * significa:
   // */5: cada 5 minutos
@@ -94,7 +118,7 @@ export class LecturasGlobalesService {
         this.logger.log(`Nueva lectura de parcela almacenada con ID: ${lecturaParcela.id}`);
       }
 
-      return lecturaGlobal;
+      return this.transformBigIntToNumber(lecturaGlobal);
     } catch (error) {
       this.logger.error('Error al obtener o almacenar lecturas:', error);
       if (error.response) {
@@ -105,15 +129,16 @@ export class LecturasGlobalesService {
   }
 
   async obtenerHistorico() {
-    return this.prisma.lecturaGlobal.findMany({
+    const historico = await this.prisma.lecturaGlobal.findMany({
       orderBy: {
         fecha_lectura: 'desc',
       },
     });
+    return this.transformBigIntToNumber(historico);
   }
 
   async obtenerParcelasConUltimaLectura() {
-    return this.prisma.parcela.findMany({
+    const parcelas = await this.prisma.parcela.findMany({
       include: {
         lecturas: {
           orderBy: {
@@ -123,5 +148,6 @@ export class LecturasGlobalesService {
         },
       },
     });
+    return this.transformBigIntToNumber(parcelas);
   }
 }
