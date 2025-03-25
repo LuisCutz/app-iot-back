@@ -32,7 +32,6 @@ model Parcela {
   longitud     Decimal
   activo       Boolean   @default(true)
   lecturas     Lectura[]
-  usuario_id   BigInt
 
   @@map("parcelas")
 }
