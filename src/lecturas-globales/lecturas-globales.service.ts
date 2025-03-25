@@ -90,7 +90,6 @@ export class LecturasGlobalesService {
             tipo_cultivo: parcela.tipo_cultivo,
             latitud: parseFloat(parcela.latitud.toString()),
             longitud: parseFloat(parcela.longitud.toString()),
-            usuario_id: 1, // Asumimos un usuario por defecto
             activo: true,
           },
           update: {

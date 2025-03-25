@@ -18,7 +18,6 @@ CREATE TABLE "parcelas" (
     "latitud" DECIMAL(65,30) NOT NULL,
     "longitud" DECIMAL(65,30) NOT NULL,
     "activo" BOOLEAN NOT NULL DEFAULT true,
-    "usuario_id" BIGINT NOT NULL,
 
     CONSTRAINT "parcelas_pkey" PRIMARY KEY ("id")
 );
