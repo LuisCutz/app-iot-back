@@ -22,6 +22,13 @@ export class LecturasGlobalesService {
       return Number(data);
     }
 
+    if (data instanceof Date) {
+      // Convertir a GMT-5
+      const date = new Date(data);
+      date.setHours(date.getHours() - 5);
+      return date.toISOString();
+    }
+
     if (Array.isArray(data)) {
       return data.map(item => this.transformBigIntToNumber(item));
     }
