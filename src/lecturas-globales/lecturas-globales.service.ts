@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -44,19 +44,7 @@ export class LecturasGlobalesService {
     return data;
   }
 
-  @Cron('*/5 * * * *') // Cada 5 minutos
-  // La expresión cron */5 * * * * significa:
-  // */5: cada 5 minutos
-  // *: cualquier hora
-  //*: cualquier día del mes
-  //*: cualquier mes
-  //*: cualquier día de la semana
-  //Si quieres modificar el intervalo, puedes cambiar el número después del */. Por ejemplo:
-
-  //*/10 * * * * - cada 10 minutos
-  //*/15 * * * * - cada 15 minutos
-  //*/30 * * * * - cada 30 minutos
-  //0 * * * * - cada hora
+  @Cron('*/5 * * * *')
   async obtenerYAlmacenarLecturas() {
     try {
       const { data } = await firstValueFrom(
@@ -176,5 +164,25 @@ export class LecturasGlobalesService {
       },
     });
     return this.transformBigIntToNumber(parcelas);
+  }
+
+  async obtenerHistoricoParcela(id: number) {
+    // Verificar si la parcela existe
+    const parcela = await this.prisma.parcela.findUnique({
+      where: { id },
+      include: {
+        lecturas: {
+          orderBy: {
+            fecha_lectura: 'desc',
+          },
+        },
+      },
+    });
+
+    if (!parcela) {
+      throw new NotFoundException(`No se encontró la parcela con ID ${id}`);
+    }
+
+    return this.transformBigIntToNumber(parcela);
   }
 }
