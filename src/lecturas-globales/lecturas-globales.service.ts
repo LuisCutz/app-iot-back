@@ -39,7 +39,7 @@ export class LecturasGlobalesService {
     return data;
   }
 
-  @Cron('*/1 * * * *') // Cada 1 minuto
+  @Cron('*/5 * * * *') // Cada 5 minutos
   // La expresión cron */5 * * * * significa:
   // */5: cada 5 minutos
   // *: cualquier hora
