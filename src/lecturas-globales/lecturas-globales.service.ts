@@ -3,7 +3,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { Cron } from '@nestjs/schedule';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class LecturasGlobalesService {
@@ -12,7 +11,6 @@ export class LecturasGlobalesService {
   constructor(
     private prisma: PrismaService,
     private httpService: HttpService,
-    private configService: ConfigService,
   ) {}
 
   private transformBigIntToNumber(data: any): any {
@@ -60,9 +58,27 @@ export class LecturasGlobalesService {
 
       this.logger.debug('Datos recibidos de la API:', data);
 
-      // Verificar que los datos necesarios estén presentes
       if (!data?.sensores || !data?.parcelas) {
         throw new Error('La respuesta de la API no tiene el formato esperado');
+      }
+
+      // Obtener todas las parcelas de la base de datos
+      const todasLasParcelas = await this.prisma.parcela.findMany({
+        select: { id: true, nombre: true, activo: true },
+      });
+
+      // Crear mapas para facilitar la búsqueda
+      const parcelasDB = new Map(todasLasParcelas.map(p => [p.id, p]));
+      const idsParcelasAPI = new Set(data.parcelas.map(p => p.id));
+
+      // Marcar como inactivas las parcelas que ya no existen en la API
+      for (const [idParcela, parcela] of parcelasDB) {
+        if (!idsParcelasAPI.has(idParcela) && parcela.activo) {
+          await this.prisma.parcela.update({
+            where: { id: idParcela },
+            data: { activo: false },
+          });
+        }
       }
 
       // Almacenar lectura global
@@ -75,7 +91,9 @@ export class LecturasGlobalesService {
         },
       });
 
-      this.logger.log(`Nueva lectura global almacenada con ID: ${lecturaGlobal.id}`);
+      this.logger.log(
+        `Nueva lectura global registrada - Humedad: ${data.sensores.humedad}%, Temperatura: ${data.sensores.temperatura}°C, Lluvia: ${data.sensores.lluvia}mm, Sol: ${data.sensores.sol}%`,
+      );
 
       // Procesar y almacenar lecturas de parcelas
       for (const parcela of data.parcelas) {
@@ -99,6 +117,7 @@ export class LecturasGlobalesService {
             tipo_cultivo: parcela.tipo_cultivo,
             latitud: parseFloat(parcela.latitud.toString()),
             longitud: parseFloat(parcela.longitud.toString()),
+            activo: true,
           },
         });
 
@@ -114,7 +133,9 @@ export class LecturasGlobalesService {
           },
         });
 
-        this.logger.log(`Nueva lectura de parcela almacenada con ID: ${lecturaParcela.id}`);
+        this.logger.log(
+          `Nueva lectura para parcela "${parcela.nombre}" - Humedad: ${parcela.sensor.humedad}%, Temperatura: ${parcela.sensor.temperatura}°C, Lluvia: ${parcela.sensor.lluvia}mm, Sol: ${parcela.sensor.sol}%`,
+        );
       }
 
       return this.transformBigIntToNumber(lecturaGlobal);
