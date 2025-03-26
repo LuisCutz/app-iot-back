@@ -36,7 +36,11 @@ export class LecturasGlobalesService {
     if (typeof data === 'object') {
       const transformed = {};
       for (const key in data) {
-        transformed[key] = this.transformBigIntToNumber(data[key]);
+        if (key === 'latitud' || key === 'longitud') {
+          transformed[key] = Number(data[key]);
+        } else {
+          transformed[key] = this.transformBigIntToNumber(data[key]);
+        }
       }
       return transformed;
     }
@@ -55,25 +59,6 @@ export class LecturasGlobalesService {
 
       if (!data?.sensores || !data?.parcelas) {
         throw new Error('La respuesta de la API no tiene el formato esperado');
-      }
-
-      // Obtener todas las parcelas de la base de datos
-      const todasLasParcelas = await this.prisma.parcela.findMany({
-        select: { id: true, nombre: true, activo: true },
-      });
-
-      // Crear mapas para facilitar la búsqueda
-      const parcelasDB = new Map(todasLasParcelas.map(p => [p.id, p]));
-      const idsParcelasAPI = new Set(data.parcelas.map(p => p.id));
-
-      // Marcar como inactivas las parcelas que ya no existen en la API
-      for (const [idParcela, parcela] of parcelasDB) {
-        if (!idsParcelasAPI.has(idParcela) && parcela.activo) {
-          await this.prisma.parcela.update({
-            where: { id: idParcela },
-            data: { activo: false },
-          });
-        }
       }
 
       // Almacenar lectura global
