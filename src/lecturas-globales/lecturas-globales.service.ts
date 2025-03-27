@@ -61,6 +61,25 @@ export class LecturasGlobalesService {
         throw new Error('La respuesta de la API no tiene el formato esperado');
       }
 
+      // Obtener todas las parcelas activas de la base de datos
+      const parcelasActivas = await this.prisma.parcela.findMany({
+        where: { activo: true },
+      });
+
+      // Crear un conjunto con los IDs de las parcelas de la API
+      const parcelasApiIds = new Set(data.parcelas.map(p => p.id));
+
+      // Desactivar parcelas que ya no están en la API
+      for (const parcela of parcelasActivas) {
+        if (!parcelasApiIds.has(Number(parcela.id))) {
+          await this.prisma.parcela.update({
+            where: { id: parcela.id },
+            data: { activo: false },
+          });
+          this.logger.log(`Parcela ${parcela.id} marcada como inactiva`);
+        }
+      }
+
       // Almacenar lectura global
       const lecturaGlobal = await this.prisma.lecturaGlobal.create({
         data: {
