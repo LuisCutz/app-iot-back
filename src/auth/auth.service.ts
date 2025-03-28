@@ -35,11 +35,17 @@ export class AuthService {
     const token = this.jwtService.sign({
       sub: Number(user.id),
       email: user.email,
+      nombre: user.nombre, // Incluir el nombre en el token
     });
 
     return {
       message: 'Usuario registrado exitosamente',
       access_token: token,
+      user: {
+        id: Number(user.id),
+        email: user.email,
+        nombre: user.nombre,
+      },
     };
   }
 
@@ -62,11 +68,17 @@ export class AuthService {
     const token = this.jwtService.sign({
       sub: Number(user.id),
       email: user.email,
+      nombre: user.nombre, // Incluir el nombre en el token
     });
 
     return {
       message: 'Login exitoso',
       access_token: token,
+      user: {
+        id: Number(user.id),
+        email: user.email,
+        nombre: user.nombre,
+      },
     };
   }
 }
