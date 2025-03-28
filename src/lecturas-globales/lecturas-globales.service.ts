@@ -166,6 +166,10 @@ export class LecturasGlobalesService {
           take: 1,
         },
       },
+      orderBy: [
+        { activo: 'desc' }, // Primero las activas (true viene antes que false)
+        { id: 'asc' }, // Luego ordenar por ID de forma ascendente
+      ],
     });
     return this.transformBigIntToNumber(parcelas);
   }
