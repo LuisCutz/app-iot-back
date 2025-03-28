@@ -52,7 +52,7 @@ export class LecturasGlobalesService {
   async obtenerYAlmacenarLecturas() {
     try {
       const { data } = await firstValueFrom(
-        this.httpService.get('https://moriahmkt.com/iotapp/test/'),
+        this.httpService.get('https://moriahmkt.com/iotapp/updated'),
       );
 
       this.logger.debug('Datos recibidos de la API:', data);
